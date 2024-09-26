@@ -3,7 +3,8 @@ import prisma from "@/lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import React from "react";
-import CreateTransactionDialog from "./_components/CreateTransactionDialog";
+import CreateTransactionDialog from "@/app/(dashboard)/_components/CreateTransactionDialog";
+import Overview from "@/app/(dashboard)/_components/Overview";
 
 async function page() {
   const user = await currentUser();
@@ -43,7 +44,7 @@ async function page() {
               trigger={
                 <Button
                   variant={"outline"}
-                  className="border-rose-500 bg-rose-950 text-white hover:bg-rose-700 hover:text-white"
+                  className="border-red-500 bg-red-950 text-white hover:bg-red-700 hover:text-white"
                 >
                   New Expense 💸
                 </Button>
@@ -53,6 +54,7 @@ async function page() {
           </div>
         </div>
       </div>
+      <Overview userSettings={userSettings} />
     </div>
   );
 }
