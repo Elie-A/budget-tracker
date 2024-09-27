@@ -56,7 +56,7 @@ export function CurrencyComboBox() {
       );
     },
     onError: (err) => {
-      toast.error("Failed to update user currency 😞", {
+      toast.error("Failed to update user currency ☹️", {
         id: "update-currency",
       });
     },
