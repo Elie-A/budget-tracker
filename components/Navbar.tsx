@@ -118,9 +118,6 @@ function NavbarItem({
       >
         {label}
       </Link>
-      {isActive && (
-        <div className="absolute bottom-[-2px] left-1/2 h-[2px] w-[80%] -translate-x-1/2 rounded-xl bg-black dark:bg-white" />
-      )}
     </div>
   );
 }
