@@ -1,5 +1,5 @@
 "use client";
-import { DateToUTCDate } from "@/lib/helpers";
+import { DateToUTCDate, formatDate } from "@/lib/helpers";
 import { useQuery } from "@tanstack/react-query";
 import React, { useMemo, useState } from "react";
 import {
@@ -39,6 +39,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import DeleteTransactionDialog from "./DeleteTransactionDialog";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+import ReactDOM from "react-dom";
+import Logo from "@/components/Logo";
 
 interface Props {
   from: Date;
@@ -156,6 +160,67 @@ function TransactionTable({ from, to }: Props) {
     download(csvConfig)(csv);
   };
 
+  const handleExportPDF = (data: any[], title: string) => {
+    const doc = new jsPDF();
+
+    const headers = ["Category", "Description", "Date", "Type", "Amount"];
+    const rows = data.map((row) => [
+      row.category,
+      row.description,
+      formatDate(new Date(row.date)),
+      row.type,
+      row.formattedAmount,
+    ]);
+
+    const titleWidth = doc.getTextWidth(title);
+    const x = (doc.internal.pageSize.getWidth() - titleWidth) / 2;
+
+    doc.text(title, x, 16);
+
+    doc.autoTable({
+      startY: 30,
+      head: [headers],
+      body: rows,
+      styles: {
+        font: "helvetica",
+        fontSize: 10,
+        cellPadding: 5,
+        overflow: "linebreak",
+        minCellHeight: 15,
+      },
+      headStyles: {
+        fillColor: [0, 102, 204],
+        textColor: [255, 255, 255],
+        fontStyle: "bold",
+      },
+      bodyStyles: {
+        fillColor: [255, 255, 255],
+        textColor: [0, 0, 0],
+      },
+      alternateRowStyles: {
+        fillColor: [240, 240, 240],
+      },
+      theme: "grid",
+      margin: { top: 30, left: 10, right: 10, bottom: 10 },
+    });
+
+    const today = new Date();
+    const formattedDate = today.toISOString().slice(0, 10).replace(/-/g, "");
+
+    const footerText = "Generated on: " + today.toISOString().slice(0, 10);
+    const footerFontSize = 8;
+    const footerY = doc.internal.pageSize.getHeight() - 5;
+    const footerX =
+      doc.internal.pageSize.getWidth() -
+      doc.getTextWidth(footerText) +
+      footerText.length;
+
+    doc.setFontSize(footerFontSize);
+    doc.text(footerText, footerX, footerY);
+
+    doc.save(`${formattedDate}_transaction_history.pdf`);
+  };
+
   const table = useReactTable({
     data: history.data || emptyData,
     columns,
@@ -229,6 +294,26 @@ function TransactionTable({ from, to }: Props) {
             <DownloadIcon className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
+
+          <Button
+            variant={"outline"}
+            size={"sm"}
+            className="ml-auto h-8 lg:flex"
+            onClick={() => {
+              const data = table.getFilteredRowModel().rows.map((row) => ({
+                category: row.original.category,
+                description: row.original.description,
+                date: row.original.date,
+                type: row.original.type,
+                formattedAmount: row.original.formattedAmount,
+              }));
+              handleExportPDF(data, "Transaction History");
+            }}
+          >
+            <DownloadIcon className="mr-2 h-4 w-4" />
+            Export PDF
+          </Button>
+
           <DataTableViewOptions table={table} />
         </div>
       </div>
